@@ -1,6 +1,8 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "DungeonEscapeCharacter.h"
+
+#include "CollectableItem.h"
 #include "Animation/AnimInstance.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -9,6 +11,8 @@
 #include "InputActionValue.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "DungeonEscape.h"
+#include "CollectableItem.h"
+#include "Lock.h"
 
 ADungeonEscapeCharacter::ADungeonEscapeCharacter()
 {
@@ -90,11 +94,6 @@ void ADungeonEscapeCharacter::LookInput(const FInputActionValue& Value)
 
 }
 
-void MyVectorNewRef(FVector& MyVector)
-{
-	MyVector.X = 10.3f;
-}
-
 void ADungeonEscapeCharacter::Interact()
 {
 	FVector Start = FirstPersonCameraComponent->GetComponentLocation();
@@ -104,22 +103,48 @@ void ADungeonEscapeCharacter::Interact()
 	FCollisionShape InteractionSphere =  FCollisionShape::MakeSphere(InteractSphereRadius);
 	DrawDebugSphere(GetWorld(), End, InteractSphereRadius, 20, FColor::Purple, false, 5.0f);
 
-	FVector MyVector = FVector(1.0f, 2.0f, 3.0f);
-	FVector& MyVectorRef = MyVector;
+	FHitResult HitResult;
+	bool HasHit = GetWorld()->SweepSingleByChannel(HitResult, Start, End, FQuat::Identity, ECC_GameTraceChannel2, InteractionSphere);
 
-	UE_LOG(LogTemp, Display, TEXT("MyVectorRef: %s"), *MyVector.ToCompactString());
-	UE_LOG(LogTemp, Display, TEXT("MyVectorRef: %s"), *MyVectorRef.ToCompactString());
+	if (HasHit)
+	{
+		AActor* HitActor = HitResult.GetActor();
 
-	/*MyVectorRef.X = 10.0f;
-	MyVectorRef.Y = 20.0f;
-	MyVectorRef.Z = 30.0f;*/
-
-	MyVectorNewRef(MyVectorRef);
-
-	UE_LOG(LogTemp, Display, TEXT("MyVectorRef: %s"), *MyVector.ToCompactString());
-	UE_LOG(LogTemp, Display, TEXT("MyVectorRef: %s"), *MyVectorRef.ToCompactString());
-
-	//GetWorld()->SweepSingleByChannel();
+		if (HitActor->ActorHasTag("CollectableItem"))
+		{
+			if (ACollectableItem* CollectableItem = Cast<ACollectableItem>(HitActor))
+			{
+				ItemList.Add(CollectableItem->ItemName);
+				CollectableItem->Destroy();
+			}
+		}
+		else if (HitActor->ActorHasTag("Lock"))
+		{
+			if (ALock* Lock = Cast<ALock>(HitActor))
+			{
+				if (!Lock->GetIsKeyPlaced())
+				{
+					if (int32 ItemsRemoved = ItemList.RemoveSingle(Lock->KeyItemName))
+					{
+						Lock->SetIsKeyPlaced(true);
+					}
+					else
+					{
+						 UE_LOG(LogTemp, Display, TEXT("Key Item is not in Inventory!!!"));
+					}
+				}
+				else
+				{
+					ItemList.Add(Lock->KeyItemName);
+					Lock->SetIsKeyPlaced(false);
+				}
+			}
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Display, TEXT("No Actor Hit"));
+	}
 }
 
 void ADungeonEscapeCharacter::DoAim(float Yaw, float Pitch)
