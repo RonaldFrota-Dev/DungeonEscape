@@ -37,6 +37,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category ="Input")
 	UInputAction* JumpAction;
 
+	UPROPERTY(EditAnywhere, Category ="Input")
+	UInputAction* InteractAction;
+
 	/** Move Input Action */
 	UPROPERTY(EditAnywhere, Category ="Input")
 	UInputAction* MoveAction;
@@ -90,5 +93,12 @@ public:
 	/** Returns first person camera component **/
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
 
+	void Interact();
+
+	UPROPERTY(EditAnywhere)
+	float MaxDistanceInteraction = 300.0f;
+
+	UPROPERTY(EditAnywhere)
+	float InteractSphereRadius = 30.0f;
 };
 

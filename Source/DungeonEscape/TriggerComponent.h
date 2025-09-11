@@ -26,13 +26,21 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	UMoverComponent* Mover;
+	
+	void Trigger(bool NewTriggerValue);
+
 	UPROPERTY(EditAnywhere)
 	AActor* MoverActor;
 
-	UMoverComponent* Mover;
-
 	UPROPERTY(EditAnywhere)
 	bool IsPressurePlate = false;
+
+	UPROPERTY(VisibleAnywhere)
+	bool IsTriggered = false;
+
+	UPROPERTY(VisibleAnywhere)
+	int32 ActivatorCount = 0;
 
 	UFUNCTION()
 	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);

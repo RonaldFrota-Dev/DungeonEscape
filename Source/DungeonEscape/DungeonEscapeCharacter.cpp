@@ -59,6 +59,9 @@ void ADungeonEscapeCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 		// Looking/Aiming
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ADungeonEscapeCharacter::LookInput);
 		EnhancedInputComponent->BindAction(MouseLookAction, ETriggerEvent::Triggered, this, &ADungeonEscapeCharacter::LookInput);
+
+		// Interact
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ADungeonEscapeCharacter::Interact);
 	}
 	else
 	{
@@ -85,6 +88,38 @@ void ADungeonEscapeCharacter::LookInput(const FInputActionValue& Value)
 	// pass the axis values to the aim input
 	DoAim(LookAxisVector.X, LookAxisVector.Y);
 
+}
+
+void MyVectorNewRef(FVector& MyVector)
+{
+	MyVector.X = 10.3f;
+}
+
+void ADungeonEscapeCharacter::Interact()
+{
+	FVector Start = FirstPersonCameraComponent->GetComponentLocation();
+	FVector End = Start + (FirstPersonCameraComponent->GetForwardVector() * MaxDistanceInteraction);
+	DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 5.0f);
+
+	FCollisionShape InteractionSphere =  FCollisionShape::MakeSphere(InteractSphereRadius);
+	DrawDebugSphere(GetWorld(), End, InteractSphereRadius, 20, FColor::Purple, false, 5.0f);
+
+	FVector MyVector = FVector(1.0f, 2.0f, 3.0f);
+	FVector& MyVectorRef = MyVector;
+
+	UE_LOG(LogTemp, Display, TEXT("MyVectorRef: %s"), *MyVector.ToCompactString());
+	UE_LOG(LogTemp, Display, TEXT("MyVectorRef: %s"), *MyVectorRef.ToCompactString());
+
+	/*MyVectorRef.X = 10.0f;
+	MyVectorRef.Y = 20.0f;
+	MyVectorRef.Z = 30.0f;*/
+
+	MyVectorNewRef(MyVectorRef);
+
+	UE_LOG(LogTemp, Display, TEXT("MyVectorRef: %s"), *MyVector.ToCompactString());
+	UE_LOG(LogTemp, Display, TEXT("MyVectorRef: %s"), *MyVectorRef.ToCompactString());
+
+	//GetWorld()->SweepSingleByChannel();
 }
 
 void ADungeonEscapeCharacter::DoAim(float Yaw, float Pitch)

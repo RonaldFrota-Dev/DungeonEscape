@@ -42,10 +42,8 @@ void UMoverComponent::BeginPlay()
 
 	UE_LOG(LogTemp, Warning, TEXT("My Vector: %s"), *MyVector.ToCompactString());*/
 	
-	UE_LOG(LogTemp, Warning, TEXT("My Owner is called %s"), *GetOwner()->GetActorNameOrLabel());
 	StartLocation = GetOwner()->GetActorLocation();
-	UE_LOG(LogTemp, Warning, TEXT("%s is at location %s"), *GetOwner()->GetActorLabel(), *StartLocation.ToString());
-	TargetLocation = StartLocation + MoveOffset;
+	SetShouldMove(false);
 }
 
 
@@ -53,14 +51,6 @@ void UMoverComponent::BeginPlay()
 void UMoverComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	if (ShouldMove)
-	{
-		TargetLocation = StartLocation + MoveOffset;
-	} else
-	{
-		TargetLocation = StartLocation;
-	}
 
 	FVector CurrentLocation = GetOwner()->GetActorLocation();
 	
@@ -70,6 +60,24 @@ void UMoverComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActor
 	{
 		FVector NewLocation = FMath::VInterpConstantTo(CurrentLocation, TargetLocation, DeltaTime, MoveOffset.Length() / MoveTime);
 		GetOwner()->SetActorLocation(NewLocation);
+	}
+}
+
+bool UMoverComponent::GetShouldMove()
+{
+	return ShouldMove;
+}
+
+void UMoverComponent::SetShouldMove(bool NewShouldMove)
+{
+	ShouldMove = NewShouldMove;
+
+	if (ShouldMove)
+	{
+		TargetLocation = StartLocation + MoveOffset;
+	} else
+	{
+		TargetLocation = StartLocation;
 	}
 }
 
